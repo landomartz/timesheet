@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrewSheet Pro</title>
+<style>
+:root{
+  --bg:#0d0f1a;--panel:#13151f;--card:#1a1d2e;--border:#252840;
+  --accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--amber:#f59e0b;
+  --red:#ef4444;--text:#e2e8f0;--muted:#94a3b8;--dim:#4b5563;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HEADER ── */
+#header{background:linear-gradient(135deg,#1a1d2e,#13151f);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;box-shadow:0 2px 20px rgba(0,0,0,.4)}
+#logo{font-size:1.15rem;font-weight:800;background:linear-gradient(135deg,var(--accent2),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px}
+#job-info{display:flex;gap:10px;flex:1;margin:0 16px}
+.job-field{flex:1;min-width:0}
+.job-field label{font-size:.62rem;color:var(--muted);display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px}
+.job-field input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:.78rem;outline:none}
+.job-field input:focus{border-color:var(--accent)}
+#header-btns{display:flex;gap:8px;flex-shrink:0}
+.hbtn{padding:7px 14px;border:none;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .15s;white-space:nowrap}
+.hbtn-blue{background:var(--accent);color:#fff}.hbtn-blue:hover{background:#4f46e5}
+.hbtn-gray{background:#1e2235;color:var(--text);border:1px solid var(--border)}.hbtn-gray:hover{background:#252840}
+.hbtn-green{background:#065f46;color:#6ee7b7}.hbtn-green:hover{background:#047857}
+
+/* ── LAYOUT ── */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── CHAT PANEL ── */
+#chat{width:340px;min-width:300px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+#chat-top{padding:10px 14px;background:#0f1117;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+#chat-top .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:glow 2s infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 4px var(--green)}50%{box-shadow:0 0 12px var(--green)}}
+#chat-title{font-size:.8rem;font-weight:700;color:var(--accent2)}
+#chat-subtitle{font-size:.65rem;color:var(--muted);margin-left:auto}
+#api-row{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center}
+#api-row input{flex:1;padding:5px 8px;background:#0a0c14;border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.7rem;outline:none}
+#api-row input:focus{border-color:var(--accent)}
+#api-row input::placeholder{color:var(--dim)}
+#api-status{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0}
+#api-status.ok{background:var(--green)}
+#msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+#msgs::-webkit-scrollbar{width:4px}
+#msgs::-webkit-scrollbar-track{background:transparent}
+#msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.bubble{max-width:88%;padding:9px 12px;border-radius:12px;font-size:.78rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.bubble.user{background:linear-gradient(135deg,#3730a3,var(--accent));color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.ai{background:var(--card);color:#c8d3e8;align-self:flex-start;border-bottom-left-radius:3px;border:1px solid var(--border)}
+.bubble.sys{background:#0d2a1a;color:#6ee7b7;align-self:center;font-size:.7rem;border-radius:6px;padding:4px 12px;border:1px solid #064e29}
+.typing{display:flex;align-items:center;gap:4px;padding:10px 12px;background:var(--card);border-radius:12px;border-bottom-left-radius:3px;align-self:flex-start;border:1px solid var(--border)}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:bounce .8s infinite}
+.typing span:nth-child(2){animation-delay:.16s}.typing span:nth-child(3){animation-delay:.32s}
+@keyframes bounce{0%,80%,100%{transform:scale(0.7)}40%{transform:scale(1.1)}}
+#chat-bottom{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;background:#0f1117}
+#lang-row{display:flex;align-items:center;gap:6px}
+#lang-row span{font-size:.65rem;color:var(--muted);margin-right:2px}
+.lang-btn{padding:3px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);font-size:.68rem;cursor:pointer;transition:all .1s}
+.lang-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+#voice-hint{font-size:.62rem;color:var(--dim);margin-left:auto}
+#input-row{display:flex;gap:6px}
+#chat-in{flex:1;padding:8px 11px;background:#0a0c14;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.8rem;outline:none;resize:none;height:38px;line-height:1.4}
+#chat-in:focus{border-color:var(--accent)}
+#chat-in::placeholder{color:var(--dim)}
+.ibtn{padding:8px 11px;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;transition:all .15s}
+#btn-send{background:var(--accent);color:#fff;font-weight:700}
+#btn-send:hover{background:#4f46e5}
+#btn-mic{background:#1e2235;color:var(--text);border:1px solid var(--border)}
+#btn-mic:hover{background:#252840}
+#btn-mic.on{background:var(--red);color:#fff;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── TIMESHEET PANEL ── */
+#sheet{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+#sheet::-webkit-scrollbar{width:5px}
+#sheet::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── WORKER CARD ── */
+.wcard{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s;flex-shrink:0}
+.wcard:hover{border-color:#3d4166}
+.wcard-head{display:flex;align-items:center;gap:12px;padding:11px 16px;background:#1e2136;border-bottom:1px solid var(--border)}
+.wcard-info{flex:1;min-width:0}
+.wname{font-weight:700;font-size:.92rem;color:var(--text)}
+.wrole{font-size:.7rem;color:var(--muted);margin-top:1px}
+.wcard-stats{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.stat{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,.2);border-radius:8px;padding:4px 10px;min-width:52px}
+.stat-val{font-size:.88rem;font-weight:700}
+.stat-lbl{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.stat.reg .stat-val{color:var(--green)}
+.stat.ot .stat-val{color:var(--amber)}
+.stat.total .stat-val{color:var(--accent2)}
+.wcard-del{background:none;border:none;color:var(--dim);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:.85rem;transition:all .15s;margin-left:4px}
+.wcard-del:hover{background:#2a1515;color:var(--red)}
+.wcard-edit{background:none;border:none;color:var(--dim);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:.8rem;transition:all .15s}
+.wcard-edit:hover{background:#1e2a3a;color:#60a5fa}
+.wname{cursor:pointer}.wname:hover{color:#a5b4fc}
+/* JOB ROWS */
+.job-name-cell{background:#0f1117;border-right:2px solid var(--border);width:120px;padding:6px 5px;vertical-align:middle;text-align:center}
+.job-name-input{width:100%;padding:6px 8px;background:#1a1d2e;border:1px solid #3d4166;border-radius:6px;color:#c4b5fd;font-size:.8rem;font-weight:700;text-align:center;outline:none;cursor:text;display:block}
+.job-name-input:hover{border-color:#6366f1;background:#1e2040}
+.job-name-input:focus{border-color:#818cf8;background:#1e2040;color:#fff;box-shadow:0 0 0 2px rgba(99,102,241,.25)}
+.job-name-input::placeholder{color:#4b5563;font-weight:400}
+.cost-code-input{width:100%;margin-top:4px;padding:4px 5px;background:#111827;border:1px solid #2d3748;border-radius:5px;color:#86efac;font-size:.68rem;font-weight:600;outline:none;display:block;cursor:pointer;appearance:none;-webkit-appearance:none;text-align:center}
+.cost-code-input:hover{border-color:#374151;background:#1a2233}
+.cost-code-input:focus{border-color:#22c55e;background:#1a2233;box-shadow:0 0 0 2px rgba(34,197,94,.2)}
+.cost-code-input option{background:#1a1d2e;color:var(--text);font-size:.75rem}
+.job-row-hrs td{background:#0a0c14;border-bottom:1px solid #151823}
+.job-row-reg td{border-bottom:1px solid #1a1d2e}
+.job-row-ot td{border-bottom:2px solid var(--border)!important}
+.hrs-lbl{color:var(--accent2)!important}
+.btn-add-job{background:none;border:1px dashed var(--border);color:var(--dim);cursor:pointer;padding:4px 12px;border-radius:5px;font-size:.7rem;transition:all .15s;margin:4px 6px}
+.btn-add-job:hover{border-color:var(--accent);color:var(--accent2);background:rgba(99,102,241,.07)}
+.btn-del-job{background:none;border:none;color:var(--dim);cursor:pointer;font-size:.7rem;padding:1px 4px;border-radius:3px}
+.btn-del-job:hover{color:var(--red);background:#2a1515}
+
+/* ── HOURS TABLE ── */
+.htable{width:100%;border-collapse:collapse;table-layout:fixed}
+.htable th{background:#0f1117;padding:7px 2px;font-size:.67rem;color:var(--muted);text-align:center;font-weight:600;border-right:1px solid var(--border)}
+.htable th.dh{color:#a5b4fc}
+.htable td{padding:4px 2px;text-align:center;border-right:1px solid #1a1d2e;border-bottom:1px solid #1a1d2e}
+.htable td.rowlbl{font-size:.65rem;font-weight:700;color:var(--muted);background:#0f1117;width:34px;letter-spacing:.3px}
+.hinput{width:100%;padding:6px 2px;background:#0a0c14;border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.92rem;font-weight:600;text-align:center;outline:none;transition:border-color .15s}
+.hinput:focus{border-color:var(--accent);background:#0d0f1a}
+.hinput::-webkit-inner-spin-button,.hinput::-webkit-outer-spin-button{opacity:0;pointer-events:none}
+.rv{color:var(--green);font-size:.85rem;font-weight:700}
+.ov{color:var(--amber);font-size:.85rem;font-weight:700}
+.zv{color:var(--border);font-size:.85rem}
+
+/* ── SUMMARY ROW ── */
+#summary{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+#summary h3{font-size:.8rem;color:var(--muted);font-weight:600;margin-right:4px}
+.sum-item{display:flex;flex-direction:column;align-items:center}
+.sum-val{font-size:1.1rem;font-weight:800}
+.sum-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+
+/* ── EMPTY ── */
+#empty{text-align:center;padding:60px 20px;color:var(--dim)}
+#empty h2{font-size:1.1rem;color:var(--muted);margin-bottom:8px}
+#empty p{font-size:.82rem;line-height:1.6}
+#empty .tip{margin-top:16px;font-size:.75rem;color:var(--dim);background:var(--card);border-radius:8px;padding:10px 16px;border:1px solid var(--border)}
+
+/* ── MODALS ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.on{display:flex}
+.mbox{background:#1a1d2e;border:1px solid #3d4166;border-radius:14px;padding:26px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.mbox h2{font-size:1rem;margin-bottom:18px;color:var(--accent2);font-weight:700}
+.mbox label{font-size:.72rem;color:var(--muted);display:block;margin-bottom:5px;font-weight:600}
+.mbox input{width:100%;padding:9px 11px;background:#0d0f1a;border:1px solid #3d4166;border-radius:7px;color:var(--text);font-size:.82rem;outline:none;margin-bottom:14px}
+.mbox input:focus{border-color:var(--accent)}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.mbtns button{padding:8px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:700}
+.mbtn-cancel{background:#1e2235;color:var(--text)}
+.mbtn-ok{background:var(--accent);color:#fff}
+.mbtn-ok:hover{background:#4f46e5}
+.mbtn-green{background:#065f46;color:#6ee7b7}
+
+/* ══════════════════════════════════════
+   MOBILE  (≤ 768px)
+══════════════════════════════════════ */
+@media(max-width:768px){
+  body{overflow:auto;height:auto}
+  #btn-mic{display:none}
+
+  /* Header stacks */
+  #header{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  #job-info{flex-wrap:wrap;margin:0;width:100%;order:2}
+  .job-field{min-width:calc(50% - 5px);flex:unset}
+  #header-btns{order:3;width:100%;flex-wrap:wrap;gap:6px}
+  .hbtn{flex:1;min-width:calc(33% - 6px);font-size:.72rem;padding:8px 6px;text-align:center}
+
+  /* Main stacks vertically — sheet on top, chat below */
+  #main{flex-direction:column;overflow:visible;height:auto}
+
+  /* Sheet full width */
+  #sheet{padding:10px 8px;overflow:visible;gap:10px}
+
+  /* Worker card table scrolls horizontally */
+  .wcard{overflow:hidden}
+  .htable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .htable{min-width:580px}
+
+  /* Bigger touch targets for hour inputs */
+  .hinput{padding:8px 2px;font-size:1rem}
+  .htable td{padding:5px 2px}
+  .htable th{padding:7px 2px;font-size:.65rem}
+
+  /* Job name cell */
+  .job-name-cell{width:90px}
+  .job-name-input{font-size:.78rem;padding:5px 4px}
+
+  /* Worker card header wraps */
+  .wcard-head{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .wcard-stats{flex-wrap:wrap;gap:6px}
+  .stat{min-width:48px;padding:4px 8px}
+
+  /* Chat panel — full width at bottom */
+  #chat{width:100%;min-width:unset;border-right:none;border-top:1px solid var(--border);height:380px;flex-shrink:0}
+
+  /* Modals full width on mobile */
+  .mbox{width:calc(100vw - 32px);max-width:400px;padding:20px;max-height:85vh;overflow-y:auto}
+  .overlay{align-items:flex-start;padding-top:5vh}
+  .mbtns{flex-wrap:wrap}
+  .mbtns button{flex:1;padding:12px 8px;font-size:.9rem}
+
+  /* Bigger quick buttons */
+  #quick-btns button{font-size:.72rem;padding:6px 10px}
+
+  /* Add job button */
+  .btn-add-job{width:calc(100% - 12px);text-align:center;padding:8px}
+}
+
+/* ── PRINT ── */
+@media print{
+  @page{size:letter;margin:0.45in 0.5in}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
+  body{background:#fff;color:#000;font-family:'Arial',sans-serif;margin:0;padding:0}
+  #chat,#header-btns,#api-row,#main,#empty,
+  .wcard,.wcard-head,.wcard-stats,.wcard-edit,.wcard-del,
+  .print-top,.print-totals,.print-footer,#quick-btns{display:none!important}
+  #print-sheet{display:block!important}
+  .wp{page-break-after:always;break-after:page;page-break-inside:avoid;break-inside:avoid;margin:0;padding:0}
+  .wp:last-child{page-break-after:avoid;break-after:avoid}
+}
+
+/* Print sheet — hidden on screen, shown only when printing */
+#print-sheet{display:none}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="logo">⚒ CrewSheet Pro</div>
+  <div id="job-info">
+    <div class="job-field"><label>Company</label><input id="fi-company" placeholder="Company name" oninput="saveJob()"></div>
+    <div class="job-field"><label>Job / Project</label><input id="fi-job" placeholder="Job site or project" oninput="saveJob()"></div>
+    <div class="job-field" style="max-width:140px"><label>Foreman</label><input id="fi-foreman" placeholder="Name" oninput="saveJob()"></div>
+    <div class="job-field" style="max-width:130px"><label>Week Ending</label><input id="fi-weekend" type="date" oninput="saveJob()"></div>
+  </div>
+  <div id="header-btns">
+    <button class="hbtn hbtn-blue" onclick="openAdd()">+ Add Worker</button>
+    <button class="hbtn hbtn-gray" onclick="doPrint()">🖨 Print</button>
+    <button class="hbtn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #1d4ed8" onclick="doDownload()">⬇ Download</button>
+    <button class="hbtn hbtn-green" onclick="openEmail()">✉ Email</button>
+    <button class="hbtn" style="background:#7c2d12;color:#fed7aa;border:1px solid #9a3412" onclick="clearHours()">🗑 Clear Hours</button>
+    <button class="hbtn" style="background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d" onclick="clearAll()">✕ Clear All</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- CHAT -->
+  <div id="chat">
+    <div id="chat-top">
+      <div class="dot"></div>
+      <span id="chat-title">AI Timesheet Agent</span>
+      <span id="chat-subtitle">English · Español</span>
+    </div>
+    <div id="api-row">
+      <div id="api-status"></div>
+      <input id="api-in" type="password" placeholder="Anthropic API key (saved locally)">
+    </div>
+    <div id="msgs"></div>
+    <div id="chat-bottom">
+      <div id="lang-row">
+        <span>Language:</span>
+        <button class="lang-btn on" id="lb-en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="lb-es" onclick="setLang('es')">ES</button>
+        <button class="lang-btn on" id="btn-tts" onclick="toggleTTS()" title="Toggle voice">🔊</button>
+        <span id="voice-hint">🎤 tap mic or type</span>
+      </div>
+      <div id="input-row">
+        <textarea id="chat-in" placeholder="Talk to your agent..." rows="1"></textarea>
+        <button class="ibtn" id="btn-mic" title="Voice input">🎤</button>
+        <button class="ibtn" id="btn-send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMESHEET -->
+  <div id="sheet"></div>
+
+</div>
+
+<!-- PRINT SHEET (hidden on screen, rendered when printing) -->
+<div id="print-sheet"></div>
+
+<!-- DATALISTS for autocomplete -->
+<datalist id="dl-workers"></datalist>
+<datalist id="dl-jobs"></datalist>
+
+<!-- EDIT WORKER MODAL -->
+<div id="edit-modal" class="overlay">
+  <div class="mbox">
+    <h2>Edit Worker</h2>
+    <label>Full Name</label>
+    <input id="edit-name" type="text" autocomplete="off">
+    <label>Trade / Role</label>
+    <input id="edit-role" type="text">
+    <label>Pay Rate ($/hr)</label>
+    <input id="edit-rate" type="number" step="0.01" min="0">
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="mbtn-ok" onclick="confirmEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD WORKER MODAL -->
+<div id="add-modal" class="overlay">
+  <div class="mbox">
+    <h2>Add Worker</h2>
+    <label>Full Name *</label>
+    <input id="m-name" placeholder="e.g. Frank Suarez" autocomplete="off" list="dl-workers">
+    <label>Trade / Role</label>
+    <input id="m-role" placeholder="e.g. Carpenter, Laborer, Foreman">
+    <label>Pay Rate ($/hr, optional)</label>
+    <input id="m-rate" type="number" placeholder="e.g. 28.50" step="0.01" min="0">
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeAdd()">Cancel</button>
+      <button class="mbtn-ok" onclick="confirmAdd()">Add Worker</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL MODAL -->
+<div id="email-modal" class="overlay">
+  <div class="mbox">
+    <h2>Email Timesheet</h2>
+    <label>Send To (Office Email) *</label>
+    <input id="em-to" type="email" placeholder="office@company.com">
+    <label>Subject</label>
+    <input id="em-subj" type="text">
+    <label>Your Name / Sender</label>
+    <input id="em-from" placeholder="e.g. Mike Foreman">
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeEmail()">Cancel</button>
+      <button class="mbtn-green" onclick="sendEmail()">Open Email App</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════
+const DAYS = ['thu','fri','sat','sun','mon','tue','wed'];
+const DL   = {thu:'Thursday',fri:'Friday',sat:'Saturday',sun:'Sunday',mon:'Monday',tue:'Tuesday',wed:'Wednesday'};
+const DS   = {thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun',mon:'Mon',tue:'Tue',wed:'Wed'};
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let workers = [];
+let job = {company:'',site:'',foreman:'',weekend:''};
+let lang = 'en';
+let apiKey = '';
+let officeEmail = '';
+let senderName = '';
+let history = [];
+let knownWorkers = [];
+let knownJobs    = [];
+let currentCard  = 0;
+
+// ═══════════════════════════════════════════════
+//  SLIDER NAVIGATION
+// ═══════════════════════════════════════════════
+function goToCard(idx){
+  currentCard = Math.max(0, Math.min(idx, workers.length-1));
+  const wrap = document.getElementById('cards-wrap');
+  if(wrap) wrap.style.transform=`translateX(-${currentCard*100}%)`;
+  updateSliderNav();
+}
+function prevCard(){ goToCard(currentCard-1); }
+function nextCard(){ goToCard(currentCard+1); }
+
+function updateSliderNav(){
+  const pos  = document.getElementById('card-pos');
+  const prev = document.getElementById('prev-card');
+  const next = document.getElementById('next-card');
+  const dots = document.getElementById('card-dots');
+  if(!pos||!workers.length) return;
+  const w = workers[currentCard];
+  pos.textContent = `${w?.name||'Worker'}  ${currentCard+1} / ${workers.length}`;
+  if(prev) prev.disabled = currentCard===0;
+  if(next) next.disabled = currentCard===workers.length-1;
+  if(dots){
+    dots.innerHTML = workers.map((_,i)=>
+      `<div class="cdot${i===currentCard?' on':''}" onclick="goToCard(${i})"></div>`
+    ).join('');
+  }
+}
+
+let _swipeX=0, _swipeInit=false;
+function initSwipe(){
+  const outer = document.getElementById('cards-outer');
+  if(!outer||outer._swipeReady) return;
+  outer._swipeReady=true;
+  outer.addEventListener('touchstart',e=>{ _swipeX=e.touches[0].clientX; _swipeInit=true; },{passive:true});
+  outer.addEventListener('touchend',e=>{
+    if(!_swipeInit) return; _swipeInit=false;
+    const diff = _swipeX - e.changedTouches[0].clientX;
+    if(Math.abs(diff)>40){ diff>0?nextCard():prevCard(); }
+  },{passive:true});
+}
+
+// ═══════════════════════════════════════════════
+//  PERSIST
+// ═══════════════════════════════════════════════
+function persist(){
+  localStorage.setItem('csp_v2', JSON.stringify({workers,job,lang,officeEmail,senderName}));
+}
+function persistMemory(){
+  // Accumulate known names without losing old ones
+  workers.forEach(w=>{
+    if(w.name&&!knownWorkers.includes(w.name)) knownWorkers.push(w.name);
+    (w.jobs||[]).forEach(j=>{ if(j.name&&!knownJobs.includes(j.name)) knownJobs.push(j.name); });
+  });
+  localStorage.setItem('csp_memory', JSON.stringify({knownWorkers,knownJobs}));
+  updateDataLists();
+}
+function updateDataLists(){
+  const wdl = document.getElementById('dl-workers');
+  const jdl = document.getElementById('dl-jobs');
+  if(wdl){ wdl.innerHTML = knownWorkers.map(n=>`<option value="${esc(n)}">`).join(''); }
+  if(jdl){ jdl.innerHTML = knownJobs.map(n=>`<option value="${esc(n)}">`).join(''); }
+}
+function hydrate(){
+  try{
+    const d = JSON.parse(localStorage.getItem('csp_v2')||'{}');
+    if(d.workers) workers=d.workers;
+    if(d.job)     job=d.job;
+    if(d.lang)    lang=d.lang;
+    if(d.officeEmail) officeEmail=d.officeEmail;
+    if(d.senderName)  senderName=d.senderName;
+  }catch(e){}
+  try{
+    const m = JSON.parse(localStorage.getItem('csp_memory')||'{}');
+    if(m.knownWorkers) knownWorkers=m.knownWorkers;
+    if(m.knownJobs)    knownJobs=m.knownJobs;
+  }catch(e){}
+  migrateWorkers();
+  const k = localStorage.getItem('csp_apikey');
+  if(k){ apiKey=k; document.getElementById('api-in').value=k; setApiStatus(true); }
+}
+function saveJob(){
+  job.company  = document.getElementById('fi-company').value;
+  job.site     = document.getElementById('fi-job').value;
+  job.foreman  = document.getElementById('fi-foreman').value;
+  job.weekend  = document.getElementById('fi-weekend').value;
+  persist();
+}
+
+// ═══════════════════════════════════════════════
+//  MIGRATE old worker.hours → worker.jobs
+// ═══════════════════════════════════════════════
+function migrateWorkers(){
+  workers.forEach(w=>{
+    if(!w.jobs){
+      w.jobs=[{name:'', costCode:'', hours: w.hours||{}}];
+      delete w.hours;
+    }
+    w.jobs.forEach(j=>{
+      if(!j.hours) j.hours={};
+      if(j.costCode===undefined) j.costCode='';
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  OT CALCULATION (multi-job)
+//  1. Total weekly hours = sum of ALL jobs, ALL days
+//  2. If total ≤ 40 → everything REG, zero OT
+//  3. If total > 40:
+//     - Saturday (any job): ALL hours = OT
+//     - Other days per job: REG = min(hours, 8), OT = hours − 8
+// ═══════════════════════════════════════════════
+function calcWorker(w){
+  const jobs = w.jobs||[];
+  const totalHrs = DAYS.reduce((ws,d)=>ws+jobs.reduce((js,j)=>js+parseFloat(j.hours?.[d]||0),0),0);
+
+  // ── If total ≤ 40: everything is regular, zero OT ──
+  if(totalHrs <= 40){
+    const jobCalcs = jobs.map(j=>{
+      const reg={}, ot={};
+      DAYS.forEach(d=>{ reg[d]=parseFloat(j.hours?.[d]||0); ot[d]=0; });
+      const jHrs=DAYS.reduce((a,d)=>a+parseFloat(j.hours?.[d]||0),0);
+      return {reg,ot,totalHrs:jHrs,totalReg:jHrs,totalOT:0};
+    });
+    return {jobCalcs,totalHrs,totalReg:totalHrs,totalOT:0};
+  }
+
+  // ── Total > 40: apply OT rules ──
+  // Rule: fill REG bucket of 40h — Saturday is filled LAST.
+  //   1. Fill Thu, Fri, Sun, Mon, Tue, Wed first (in that order)
+  //   2. Then fill Saturday with whatever REG remains in the bucket
+  //   This means: if non-Saturday days already used up 40 REG, Saturday = all OT.
+  //   If non-Saturday days used only 36 REG, Saturday gets up to 4 REG then OT.
+  const regArr = jobs.map(()=>({}));
+  const otArr  = jobs.map(()=>({}));
+  let weekRegLeft = 40;
+
+  // Non-Saturday days first, then Saturday last
+  const fillOrder = ['thu','fri','sun','mon','tue','wed','sat'];
+  fillOrder.forEach(d=>{
+    jobs.forEach((j,ji)=>{
+      const h=parseFloat(j.hours?.[d]||0);
+      const r=Math.min(h, weekRegLeft);
+      regArr[ji][d]=r; otArr[ji][d]=h-r;
+      weekRegLeft-=r;
+    });
+  });
+
+  const jobCalcs = jobs.map((j,ji)=>{
+    const jHrs=DAYS.reduce((a,d)=>a+parseFloat(j.hours?.[d]||0),0);
+    return {
+      reg:regArr[ji], ot:otArr[ji], totalHrs:jHrs,
+      totalReg:DAYS.reduce((a,d)=>a+regArr[ji][d],0),
+      totalOT: DAYS.reduce((a,d)=>a+otArr[ji][d],0)
+    };
+  });
+
+  return {
+    jobCalcs, totalHrs,
+    totalReg: jobCalcs.reduce((a,c)=>a+c.totalReg,0),
+    totalOT:  jobCalcs.reduce((a,c)=>a+c.totalOT,0)
+  };
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function n2(v){ return v===0?'—':Number.isInteger(v)?String(v):v.toFixed(1); }
+
+function weekEndFmt(){
+  if(!job.weekend) return '';
+  try{ return new Date(job.weekend+'T12:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}); }
+  catch(e){ return job.weekend; }
+}
+
+function render(){
+  const sheet = document.getElementById('sheet');
+  sheet.querySelectorAll('.wcard').forEach(e=>e.remove());
+  document.getElementById('empty')?.remove();
+
+  if(!workers.length){
+    const d=document.createElement('div');
+    d.id='empty';
+    d.innerHTML=`<h2>No workers added yet</h2>
+      <p>Click <strong>+ Add Worker</strong> or tell Becky to add crew members.</p>
+      <div class="tip">💬 "Add Frank Suarez, carpenter"<br>💬 "Frank worked 8 hours Thursday"</div>`;
+    sheet.appendChild(d);
+    return;
+  }
+
+  workers.forEach((w,wi)=>{
+    const {jobCalcs,totalHrs,totalReg,totalOT}=calcWorker(w);
+    const jobs=w.jobs||[];
+
+    // build job rows (3 rows per job: HRS input / REG calculated / OT calculated)
+    let jobRows='';
+    jobs.forEach((j,ji)=>{
+      const c=jobCalcs[ji]||{reg:{},ot:{},totalReg:0,totalOT:0};
+      const canDel=jobs.length>1;
+      const jTotal=DAYS.reduce((a,d)=>a+parseFloat(j.hours?.[d]||0),0);
+      jobRows+=`
+        <tr class="job-row-hrs">
+          <td class="job-name-cell" rowspan="3">
+            <input class="job-name-input" placeholder="Job name" value="${esc(j.name||'')}"
+              oninput="setJobName(${wi},${ji},this.value)"
+              onblur="setJobName(${wi},${ji},this.value);saveJobNameToMemory(${wi},${ji})"
+              data-wi="${wi}" data-ji="${ji}"
+              title="Job name" list="dl-jobs">
+            <select class="cost-code-input" onchange="setCostCode(${wi},${ji},this.value)" title="Cost code">
+              <option value="">-- Cost Code --</option>
+              <option value="1-Foundations"     ${j.costCode==='1-Foundations'    ?'selected':''}>1 - Foundations</option>
+              <option value="2-Slab on Grade"   ${j.costCode==='2-Slab on Grade'  ?'selected':''}>2 - Slab on Grade</option>
+              <option value="3-Slab off Grade"  ${j.costCode==='3-Slab off Grade' ?'selected':''}>3 - Slab off Grade</option>
+              <option value="4-Masonry"         ${j.costCode==='4-Masonry'        ?'selected':''}>4 - Masonry</option>
+            </select>
+            ${canDel?`<button class="btn-del-job" onclick="removeJobEntry(${wi},${ji})" title="Remove job">✕ remove</button>`:''}
+          </td>
+          <td class="rowlbl hrs-lbl">HRS</td>
+          ${DAYS.map(d=>`<td><input class="hinput" type="number" min="0" max="24" step="0.5"
+            value="${j.hours?.[d]||''}" placeholder=""
+            data-wi="${wi}" data-ji="${ji}" data-day="${d}"
+            oninput="setH(${wi},${ji},'${d}',this.value)"></td>`).join('')}
+          <td><span style="color:var(--muted);font-size:.78rem;font-weight:600">${jTotal>0?n2(jTotal):''}</span></td>
+        </tr>
+        <tr class="job-row-reg">
+          <td class="rowlbl">REG</td>
+          ${DAYS.map(d=>`<td><span class="${c.reg[d]>0?'rv':'zv'}">${c.reg[d]>0?n2(c.reg[d]):''}</span></td>`).join('')}
+          <td><span class="rv">${c.totalReg>0?n2(c.totalReg):''}</span></td>
+        </tr>
+        <tr class="job-row-ot">
+          <td class="rowlbl">OT</td>
+          ${DAYS.map(d=>`<td><span class="${c.ot[d]>0?'ov':'zv'}">${c.ot[d]>0?n2(c.ot[d]):''}</span></td>`).join('')}
+          <td><span class="${c.totalOT>0?'ov':'zv'}">${c.totalOT>0?n2(c.totalOT):''}</span></td>
+        </tr>`;
+    });
+
+    const card=document.createElement('div');
+    card.className='wcard'; card.id=`wc-${wi}`;
+    card.innerHTML=`
+    <div class="wcard-head">
+      <div class="wcard-info">
+        <div class="wname">${esc(w.name)}</div>
+        <div class="wrole">${esc(w.role||'Worker')}${w.rate?' · $'+parseFloat(w.rate).toFixed(2)+'/hr':''}</div>
+      </div>
+      <div class="wcard-stats">
+        <div class="stat total"><span class="stat-val">${n2(totalHrs)}</span><span class="stat-lbl">Hours</span></div>
+        <div class="stat reg"><span class="stat-val">${n2(totalReg)}</span><span class="stat-lbl">REG</span></div>
+        <div class="stat ot"><span class="stat-val">${n2(totalOT)}</span><span class="stat-lbl">OT</span></div>
+        ${w.rate?`<div class="stat" style="min-width:60px"><span class="stat-val" style="color:#a78bfa;font-size:.8rem">$${(totalHrs*parseFloat(w.rate)).toFixed(0)}</span><span class="stat-lbl">Gross</span></div>`:''}
+      </div>
+      <button class="wcard-edit" onclick="openEdit(${wi})" title="Edit">✏️</button>
+      <button class="wcard-del" onclick="delWorker(${wi})" title="Remove">✕</button>
+    </div>
+    <div class="htable-wrap">
+    <table class="htable">
+      <thead><tr>
+        <th style="width:100px">JOB</th>
+        <th style="width:34px"></th>
+        ${DAYS.map(d=>`<th class="dh" style="width:62px">${DS[d].toUpperCase()}</th>`).join('')}
+        <th style="width:52px">TOTAL</th>
+      </tr></thead>
+      <tbody>${jobRows}</tbody>
+    </table>
+    </div>
+    <div style="padding:4px 6px">
+      <button class="btn-add-job" onclick="addJobEntry(${wi})">+ Add Job</button>
+    </div>`;
+
+    sheet.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  MUTATIONS
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  PRINT — builds layout matching the paper sheet
+// ═══════════════════════════════════════════════
+function buildPrintHTML(){
+  const we = weekEndFmt();
+  const MIN_ROWS = 10;
+
+  const PRINT_STYLES = `
+    @page{size:letter;margin:0.45in 0.5in}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
+    html,body{font-family:Arial,sans-serif;margin:0;padding:0;background:#fff;color:#000}
+    .wp{
+      display:block;
+      width:100%;
+      page-break-after:always;
+      break-after:page;
+      page-break-inside:avoid;
+      break-inside:avoid;
+      padding:0;
+      margin:0;
+    }
+    .wp:last-child{page-break-after:avoid;break-after:avoid}
+    .ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #000;padding-bottom:7px;margin-bottom:10px}
+    .ph-left{display:flex;flex-direction:column;gap:2px}
+    .ph-title{font-size:18pt;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+    .ph-name{font-size:13pt;font-weight:700;color:#111}
+    .ph-role{font-size:8pt;color:#444}
+    .ph-meta{font-size:8pt;line-height:1.8;text-align:right}
+    .pt{width:100%;border-collapse:collapse;border:2px solid #000}
+    .pt th{background:#000;color:#fff;padding:5px 2px;text-align:center;font-size:8pt;font-weight:700;border:1px solid #000}
+    .pt td{border:1px solid #aaa;padding:3px 2px;text-align:center;height:22px;font-size:9pt}
+    .cj{text-align:left;padding-left:4px;border-right:2px solid #000;font-size:8pt;font-weight:700;vertical-align:middle;width:90px}
+    .ct{font-weight:700;font-size:7.5pt;background:#efefef;width:28px;border-right:1px solid #999;color:#000}
+    .wr td{border-bottom:none}
+    .wo td{border-bottom:2px solid #000}
+    .er td{border-bottom:none}
+    .pf{display:flex;justify-content:space-between;align-items:flex-end;border-top:2.5px solid #000;margin-top:10px;padding-top:8px}
+    .pfc{font-size:8pt;line-height:1.7;color:#333}
+    .pft{text-align:right}
+    .pft-lbl{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+    .pft table{border-collapse:collapse;margin-left:auto}
+    .pft td{padding:2px 12px;text-align:center;border-left:1px solid #ccc}
+    .pft td:first-child{border-left:none}
+    .tv{font-size:16pt;font-weight:900;display:block;line-height:1.1}
+    .tl{font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#666}
+    .sig{margin-top:18px;display:flex;gap:40px}
+    .sig-line{flex:1;border-top:1px solid #000;padding-top:3px;font-size:7pt;color:#555;text-transform:uppercase;letter-spacing:.5px}`;
+
+  let pagesHTML = `<style>${PRINT_STYLES}</style>`;
+
+  workers.forEach(w=>{
+    const {jobCalcs,totalHrs,totalReg,totalOT}=calcWorker(w);
+    const jobs=w.jobs||[];
+
+    // Build job rows (REG + OT per job)
+    let rowsHTML='';
+    jobs.forEach((j,ji)=>{
+      const c=jobCalcs[ji]||{reg:{},ot:{},totalReg:0,totalOT:0};
+      const rc=DAYS.map(d=>`<td>${c.reg[d]>0?n2(c.reg[d]):''}</td>`).join('');
+      const oc=DAYS.map(d=>`<td>${c.ot[d]>0?n2(c.ot[d]):''}</td>`).join('');
+      const jobLabel=esc(j.name||`Job ${ji+1}`);
+      const ccLabel=j.costCode?`<div style="font-size:6.5pt;color:#555;font-weight:400;margin-top:2px">${esc(j.costCode)}</div>`:'';
+      rowsHTML+=`
+        <tr class="wr">
+          <td class="cj" rowspan="2">${jobLabel}${ccLabel}</td>
+          <td class="ct">REG</td>${rc}
+          <td><strong>${c.totalReg>0?n2(c.totalReg):''}</strong></td>
+        </tr>
+        <tr class="wo">
+          <td class="ct">OT</td>${oc}
+          <td><strong>${c.totalOT>0?n2(c.totalOT):''}</strong></td>
+        </tr>`;
+    });
+
+    // Fill empty rows to pad the page
+    const usedRows = jobs.length * 2;
+    const emptyRows = Math.max(0, MIN_ROWS - usedRows);
+    for(let i=0; i<emptyRows; i+=2){
+      rowsHTML+=`
+        <tr class="wr"><td class="cj" rowspan="2"></td><td class="ct">REG</td>${DAYS.map(()=>'<td></td>').join('')}<td></td></tr>
+        <tr class="wo"><td class="ct">OT</td>${DAYS.map(()=>'<td></td>').join('')}<td></td></tr>`;
+    }
+
+    pagesHTML+=`
+    <div class="wp">
+     <div style="padding:14px 18px">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-title">${esc(job.company||'Timesheet')}</div>
+          <div class="ph-name">${esc(w.name)}</div>
+          <div class="ph-role">${esc(w.role||'')}${w.rate?' · $'+parseFloat(w.rate).toFixed(2)+'/hr':''}</div>
+        </div>
+        <div class="ph-meta">
+          ${job.site?`<strong>${esc(job.site)}</strong><br>`:''}
+          ${job.foreman?`Foreman: ${esc(job.foreman)}<br>`:''}
+          ${we?`<strong>WEEK ENDING: ${we}</strong>`:''}
+        </div>
+      </div>
+      <table class="pt">
+        <thead><tr>
+          <th style="text-align:left;padding-left:5px;width:90px">JOB</th>
+          <th style="width:28px"></th>
+          <th>THUR</th><th>FRI</th><th>SAT</th><th>SUN</th><th>MON</th><th>TUE</th><th>WED</th>
+          <th>TOTAL</th>
+        </tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+      <div class="pf">
+        <div class="pfc">
+          ${job.company?`<strong>${esc(job.company)}</strong><br>`:''}
+          ${job.site?`${esc(job.site)}<br>`:''}
+          ${job.foreman?`Foreman: ${esc(job.foreman)}`:''}
+        </div>
+        <div class="pft">
+          <div class="pft-lbl">Weekly Totals — ${esc(w.name)}</div>
+          <table><tr>
+            <td><span class="tv">${n2(totalHrs)}</span><span class="tl">Total</span></td>
+            <td><span class="tv" style="color:#15803d">${n2(totalReg)}</span><span class="tl">Regular</span></td>
+            <td><span class="tv" style="color:#b45309">${n2(totalOT)}</span><span class="tl">Overtime</span></td>
+          </tr></table>
+        </div>
+      </div>
+      <div class="sig">
+        <div class="sig-line">Worker Signature</div>
+        <div class="sig-line">Foreman / Supervisor</div>
+        <div class="sig-line">Date</div>
+      </div>
+     </div>
+    </div>`;
+  });
+
+  return pagesHTML;
+}
+
+function syncInputs(){
+  // Flush any unsaved job name inputs to the workers array before export/print
+  document.querySelectorAll('.job-name-input[data-wi]').forEach(inp=>{
+    const wi=parseInt(inp.dataset.wi), ji=parseInt(inp.dataset.ji);
+    if(workers[wi]?.jobs[ji]) workers[wi].jobs[ji].name = inp.value;
+  });
+  // Flush any unsaved hour inputs too
+  document.querySelectorAll('.hinput[data-wi]').forEach(inp=>{
+    const wi=parseInt(inp.dataset.wi), ji=parseInt(inp.dataset.ji), d=inp.dataset.day;
+    if(workers[wi]?.jobs[ji] && d){
+      const h=parseFloat(inp.value);
+      workers[wi].jobs[ji].hours[d] = (isNaN(h)||h<0)?'':Math.min(h,24);
+    }
+  });
+  persist(); persistMemory();
+}
+
+function doPrint(){
+  if(!workers.length){ alert('No workers to print.'); return; }
+  syncInputs();
+  document.getElementById('print-sheet').innerHTML = buildPrintHTML();
+  window.print();
+}
+
+function doDownload(){
+  if(!workers.length){ alert('No workers to export.'); return; }
+  syncInputs();
+  const html = buildPrintHTML();
+  const we = job.weekend || '';
+  const defaultName = [job.company, job.site, we].filter(Boolean).join(' - ') || 'Timesheet';
+  const chosen = prompt('File name:', defaultName);
+  if(chosen===null) return; // user cancelled
+  const safe = (chosen||defaultName).replace(/[^a-zA-Z0-9 \-_]/g,'').trim() || 'Timesheet';
+  const filename = `${safe}.html`;
+  const full = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Timesheet — ${esc(job.company||'Crew')} — ${we}</title>
+<script>window.onload=function(){ window.print(); }<\/script>
+</head>
+<body style="margin:0;padding:0;background:#fff">
+${html}
+</body>
+</html>`;
+  const blob = new Blob([full], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS){
+    // iOS Safari doesn't support blob download via a.click() — open in new tab instead
+    const w = window.open(url, '_blank');
+    if(!w){
+      alert('Popup blocked. Please allow popups for this page and try again.');
+    } else {
+      const m = lang==='es'
+        ? `✓ Abierto en nueva pestaña. Toca Compartir (⬆) → "Guardar en Archivos" para guardarlo como ${filename}`
+        : `✓ Opened in new tab. Tap Share (⬆) → "Save to Files" to save it as ${filename}`;
+      sysmsg(m);
+    }
+    setTimeout(()=>URL.revokeObjectURL(url), 30000);
+  } else {
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    sysmsg(`✓ Downloaded: ${filename} — attach it to your email`);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  CLEAR BUTTONS
+// ═══════════════════════════════════════════════
+function clearHours(){
+  if(!workers.length) return;
+  if(!confirm('Clear all hours for all workers? (Workers stay, just hours reset)')) return;
+  workers.forEach(w=>{ w.jobs=[{name:'',hours:{}}]; });
+  persist(); render();
+  sysmsg('✓ All hours cleared — workers kept');
+}
+function clearAll(){
+  if(!workers.length) return;
+  if(!confirm('Remove ALL workers and hours? This cannot be undone.')) return;
+  workers=[];
+  persist(); render();
+  sysmsg('✓ Timesheet cleared');
+}
+
+// ═══════════════════════════════════════════════
+//  EDIT WORKER
+// ═══════════════════════════════════════════════
+let editIdx = -1;
+function openEdit(i){
+  editIdx = i;
+  document.getElementById('edit-name').value = workers[i].name;
+  document.getElementById('edit-role').value = workers[i].role||'';
+  document.getElementById('edit-rate').value = workers[i].rate||'';
+  document.getElementById('edit-modal').classList.add('on');
+  setTimeout(()=>document.getElementById('edit-name').focus(),50);
+}
+function closeEdit(){ document.getElementById('edit-modal').classList.remove('on'); editIdx=-1; }
+function confirmEdit(){
+  const n = document.getElementById('edit-name').value.trim();
+  if(!n){ document.getElementById('edit-name').focus(); return; }
+  workers[editIdx].name = n;
+  workers[editIdx].role = document.getElementById('edit-role').value.trim();
+  workers[editIdx].rate = document.getElementById('edit-rate').value;
+  persist(); render(); closeEdit();
+}
+document.getElementById('edit-modal').onclick = e=>{ if(e.target===e.currentTarget) closeEdit(); };
+document.getElementById('edit-name').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('edit-role').focus(); });
+document.getElementById('edit-role').addEventListener('keydown', e=>{ if(e.key==='Enter') confirmEdit(); });
+
+function addWorker(name,role='',rate=''){
+  if(!name?.trim()) return false;
+  workers.push({name:name.trim(),role:role.trim(),rate,jobs:[{name:'',costCode:'',hours:{}}]});
+  currentCard = workers.length-1;
+  persist(); persistMemory(); render(); return true;
+}
+function delWorker(i){ workers.splice(i,1); persist(); render(); }
+function setH(wi,ji,day,val){
+  const w=workers[wi]; if(!w) return;
+  if(!w.jobs[ji]) return;
+  if(!w.jobs[ji].hours) w.jobs[ji].hours={};
+  const h=parseFloat(val);
+  w.jobs[ji].hours[day]=(isNaN(h)||h<0)?'':Math.min(h,24);
+  persist(); render();
+}
+function setJobName(wi,ji,name){
+  if(workers[wi]?.jobs[ji]) workers[wi].jobs[ji].name=name;
+  persist();
+}
+function saveJobNameToMemory(wi,ji){
+  // called onblur only — safely adds to autocomplete without interrupting typing
+  const name = workers[wi]?.jobs[ji]?.name;
+  if(name && !knownJobs.includes(name)){ knownJobs.push(name); persistMemory(); }
+}
+function addJobEntry(wi){
+  if(!workers[wi]) return;
+  workers[wi].jobs.push({name:'',costCode:'',hours:{}});
+  persist(); render();
+}
+function setCostCode(wi,ji,val){
+  if(workers[wi]?.jobs[ji]) workers[wi].jobs[ji].costCode=val;
+  persist();
+}
+function removeJobEntry(wi,ji){
+  if(!workers[wi]||workers[wi].jobs.length<=1) return;
+  workers[wi].jobs.splice(ji,1);
+  persist(); render();
+}
+function findW(name){
+  const n=name.toLowerCase().trim();
+  return workers.findIndex(w=>w.name.toLowerCase().includes(n));
+}
+function dayKey(str){
+  const s=str.toLowerCase();
+  if(s.includes('thu')||s.includes('jue')) return 'thu';
+  if(s.includes('fri')||s.includes('vie')) return 'fri';
+  if(s.includes('sat')||s.includes('sab')) return 'sat';
+  if(s.includes('sun')||s.includes('dom')) return 'sun';
+  if(s.includes('mon')||s.includes('lun')) return 'mon';
+  if(s.includes('tue')||s.includes('mar')) return 'tue';
+  if(s.includes('wed')||s.includes('mié')||s.includes('mie')||s.includes('jue')) return 'wed';
+  return null;
+}
+
+// ═══════════════════════════════════════════════
+//  ADD MODAL
+// ═══════════════════════════════════════════════
+function openAdd(n='',r=''){
+  document.getElementById('m-name').value=n;
+  document.getElementById('m-role').value=r;
+  document.getElementById('m-rate').value='';
+  document.getElementById('add-modal').classList.add('on');
+  setTimeout(()=>document.getElementById('m-name').focus(),50);
+}
+function closeAdd(){ document.getElementById('add-modal').classList.remove('on'); }
+function confirmAdd(){
+  const n=document.getElementById('m-name').value.trim();
+  if(!n){ document.getElementById('m-name').focus(); return; }
+  if(addWorker(n,document.getElementById('m-role').value,document.getElementById('m-rate').value))
+    sysmsg(`✓ Added: ${n}`);
+  closeAdd();
+}
+document.getElementById('add-modal').onclick=e=>{if(e.target===e.currentTarget)closeAdd();};
+document.getElementById('m-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('m-role').focus();});
+document.getElementById('m-role').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAdd();});
+
+// ═══════════════════════════════════════════════
+//  EMAIL
+// ═══════════════════════════════════════════════
+function openEmail(){
+  const we = job.weekend ? new Date(job.weekend+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Week';
+  document.getElementById('em-to').value=officeEmail;
+  document.getElementById('em-subj').value=`Timesheet — ${job.company||'Crew'} — Week ending ${we}`;
+  document.getElementById('em-from').value=senderName;
+  document.getElementById('email-modal').classList.add('on');
+}
+function closeEmail(){ document.getElementById('email-modal').classList.remove('on'); }
+function sendEmail(){
+  const to=document.getElementById('em-to').value.trim();
+  if(!to){ document.getElementById('em-to').focus(); return; }
+  officeEmail=to;
+  senderName=document.getElementById('em-from').value.trim();
+  persist();
+  const subj=document.getElementById('em-subj').value;
+  const body=buildBody();
+  window.location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  closeEmail();
+}
+document.getElementById('email-modal').onclick=e=>{if(e.target===e.currentTarget)closeEmail();};
+
+function buildBody(){
+  const we = job.weekend||'';
+  const lines=[
+    `TIMESHEET${job.company?' — '+job.company:''}`,
+    job.site?`Project: ${job.site}`:'',
+    job.foreman?`Foreman: ${job.foreman}`:'',
+    we?`Week Ending: ${we}`:'',
+    senderName?`Submitted by: ${senderName}`:'',
+    '',
+    ['WORKER','ROLE','JOB','TYPE',...DAYS.map(d=>DS[d]),'TOTAL'].join('\t')
+  ].filter(Boolean);
+  workers.forEach(w=>{
+    const {jobCalcs,totalHrs,totalReg,totalOT}=calcWorker(w);
+    (w.jobs||[]).forEach((j,ji)=>{
+      const c=jobCalcs[ji]||{reg:{},ot:{},totalReg:0,totalOT:0};
+      const jobLabel=j.name||`Job ${ji+1}`;
+      lines.push([w.name,w.role||'',jobLabel,'REG',...DAYS.map(d=>c.reg[d]>0?n2(c.reg[d]):''),n2(c.totalReg)].join('\t'));
+      lines.push(['','','','OT',...DAYS.map(d=>c.ot[d]>0?n2(c.ot[d]):''),''].join('\t'));
+    });
+    lines.push(['','','','TOTAL',...DAYS.map(()=>''),`${n2(totalHrs)} (REG:${n2(totalReg)} OT:${n2(totalOT)})`].join('\t'));
+  });
+  let gT=0,gR=0,gO=0;
+  workers.forEach(w=>{const c=calcWorker(w);gT+=c.totalHrs;gR+=c.totalReg;gO+=c.totalOT;});
+  lines.push('');
+  lines.push(`CREW TOTALS\t\t\t\t\t\t\t\t\t\tTotal:${n2(gT)} REG:${n2(gR)} OT:${n2(gO)}`);
+  return lines.join('\n');
+}
+
+// ═══════════════════════════════════════════════
+//  HEADER FIELDS RESTORE
+// ═══════════════════════════════════════════════
+function restoreJob(){
+  document.getElementById('fi-company').value = job.company||'';
+  document.getElementById('fi-job').value     = job.site||'';
+  document.getElementById('fi-foreman').value = job.foreman||'';
+  document.getElementById('fi-weekend').value = job.weekend||'';
+}
+
+// ═══════════════════════════════════════════════
+//  API KEY
+// ═══════════════════════════════════════════════
+function setApiStatus(ok){
+  document.getElementById('api-status').style.background = ok ? 'var(--green)' : 'var(--dim)';
+}
+document.getElementById('api-in').addEventListener('input',e=>{
+  apiKey=e.target.value.trim();
+  localStorage.setItem('csp_apikey',apiKey);
+  setApiStatus(apiKey.length>20);
+});
+
+// ═══════════════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════════════
+function setLang(l){
+  lang=l;
+  document.getElementById('lb-en').classList.toggle('on',l==='en');
+  document.getElementById('lb-es').classList.toggle('on',l==='es');
+  if(recog) recog.lang=l==='es'?'es-MX':'en-US';
+}
+
+// ═══════════════════════════════════════════════
+//  CHAT UI
+// ═══════════════════════════════════════════════
+function msg(role,text){
+  const w=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className=`bubble ${role}`;
+  d.textContent=text;
+  w.appendChild(d);
+  w.scrollTop=w.scrollHeight;
+  return d;
+}
+function sysmsg(text){
+  const w=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='bubble sys';
+  d.textContent=text;
+  w.appendChild(d);
+  w.scrollTop=w.scrollHeight;
+}
+function showTyping(){
+  const w=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='typing'; d.id='typ';
+  d.innerHTML='<span></span><span></span><span></span>';
+  w.appendChild(d); w.scrollTop=w.scrollHeight;
+}
+function hideTyping(){ document.getElementById('typ')?.remove(); }
+
+// ═══════════════════════════════════════════════
+//  TEXT-TO-SPEECH
+// ═══════════════════════════════════════════════
+let ttsOn = true;
+let voiceEN = null, voiceES = null;
+
+function loadVoices(){
+  const vs = speechSynthesis.getVoices();
+  if(!vs.length) return;
+  const enNames = ['Samantha','Karen','Moira','Tessa','Victoria','Fiona','Google US English','Microsoft Aria','Microsoft Jenny'];
+  voiceEN = vs.find(v=>enNames.some(n=>v.name.includes(n)))
+    || vs.find(v=>v.lang==='en-US'&&v.localService)
+    || vs.find(v=>v.lang.startsWith('en-US'))
+    || vs.find(v=>v.lang.startsWith('en'));
+  const esNames = ['Monica','Paulina','Mónica','Google español de Estados Unidos','Google español','Marisol','Microsoft Sabina','Microsoft Dalia','Luciana'];
+  voiceES = vs.find(v=>esNames.some(n=>v.name.includes(n)))
+    || vs.find(v=>v.lang==='es-MX'&&v.localService)
+    || vs.find(v=>v.lang==='es-MX')
+    || vs.find(v=>v.lang==='es-US')
+    || vs.find(v=>v.lang.startsWith('es'));
+}
+if(window.speechSynthesis){
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function speak(text){
+  if(!ttsOn || !window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const clean = text
+    .replace(/```[\s\S]*?```/gi,'')
+    .replace(/\*\*?|__?|~~|`/g,'')
+    .replace(/[✓⚠✕💬🎤⏹⚒►]/g,'')
+    .replace(/\[.*?\]\(.*?\)/g,'')
+    .replace(/\n{2,}/g,'. ')
+    .replace(/\n/g,' ')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+  if(!clean) return;
+  const utt = new SpeechSynthesisUtterance(clean);
+  const isSpanish = lang==='es' || /[áéíóúüñ¿¡]/i.test(clean.slice(0,80));
+  utt.voice  = isSpanish ? voiceES : voiceEN;
+  utt.lang   = isSpanish ? 'es-MX' : 'en-US';
+  utt.rate   = 0.93;
+  utt.pitch  = 1.05;
+  utt.volume = 1.0;
+  speechSynthesis.speak(utt);
+}
+
+function toggleTTS(){
+  ttsOn=!ttsOn;
+  const btn=document.getElementById('btn-tts');
+  btn.textContent = ttsOn ? '🔊' : '🔇';
+  btn.classList.toggle('on',ttsOn);
+  if(!ttsOn) speechSynthesis.cancel();
+}
+
+// ═══════════════════════════════════════════════
+//  AI SYSTEM PROMPT
+// ═══════════════════════════════════════════════
+const SYS_PROMPT=`Your name is Becky. You are a smart, warm, bilingual construction timesheet assistant. You speak perfect natural English AND Spanish — never mix them in the same message.
+
+═══ PERSONALITY ═══
+- Sound like a real, friendly coworker — never robotic or formal
+- ALWAYS respond in the EXACT same language the user just used (if they write Spanish, reply Spanish; English → English)
+- Keep each response SHORT — 1 to 3 sentences max. You speak out loud too, so be conversational
+- Ask only ONE question at a time. Never ask multiple questions in one message
+- Be warm, encouraging, and patient — many users are not tech-savvy
+- If the user seems unsure, guide them step by step
+
+═══ YOUR JOB ═══
+You fill out a construction crew timesheet by having a natural conversation. You ask the user for each piece of information and enter it into the system. You guide them through:
+1. Job info (company, job site, foreman, week ending) — if not already filled
+2. Each worker: name, trade, and hours per day (Thu/Fri/Sat/Sun/Mon/Tue/Wed)
+3. Confirm totals for each worker when done
+
+═══ GUIDED FLOW ═══
+When a user says they want to fill a timesheet or start fresh:
+- First ask for job/company info if it's missing
+- Then ask: "Who is the first worker?"
+- After getting a name, ask for their trade
+- Then ask for hours day by day: "How many hours did [name] work Thursday?" then Friday, etc.
+- Skip days the user says they didn't work (enter 0)
+- When all 7 days are done, confirm the total and ask "Any more workers?"
+- Repeat until all workers are entered
+
+When the user gives multiple days at once ("8 hours Thursday through Monday"), log all of them at once.
+When the user says a worker "didn't work" a day, enter 0.
+
+═══ TIMESHEET RULES ═══
+- Week: Thursday → Friday → Saturday → Sunday → Monday → Tuesday → Wednesday
+- Regular (REG) = first 40 hours of the week
+- Overtime (OT) = hours beyond 40 total — calculated automatically
+- OT only applies if TOTAL weekly hours exceed 40. Under 40 = all regular
+- Saturday is regular if total ≤ 40. Saturday becomes OT if total > 40
+- "8 regular and 2 overtime on Thursday" = 10 total hours Thursday
+- Short week = fewer days worked, all regular as long as total ≤ 40
+
+═══ ACTIONS ═══
+Embed JSON silently in your response — never show it to the user as code.
+
+Add worker:
+\`\`\`json
+{"action":"add_worker","name":"Frank Suarez","role":"Carpenter","rate":""}
+\`\`\`
+
+Log hours for one day (add optional "job" field if worker worked on multiple jobs):
+\`\`\`json
+{"action":"set_hours","worker":"Frank Suarez","day":"thu","hours":8,"job":"Job A"}
+\`\`\`
+
+Log full week at once (add optional "job" field for multi-job):
+\`\`\`json
+{"action":"set_week","worker":"Frank Suarez","job":"Job A","hours":{"thu":8,"fri":8,"sat":0,"sun":0,"mon":8,"tue":8,"wed":8}}
+\`\`\`
+
+Update job info:
+\`\`\`json
+{"action":"set_job","company":"ABC Construction","site":"Main St Project","foreman":"Mike","weekend":"2026-04-16"}
+\`\`\`
+
+Remove worker:
+\`\`\`json
+{"action":"remove_worker","worker":"Frank Suarez"}
+\`\`\`
+
+═══ STRICT RULES ═══
+- Day keys: thu fri sat sun mon tue wed (always lowercase)
+- hours = TOTAL hours worked that day (add regular + overtime if user gives both)
+- NEVER show JSON blocks to the user
+- NEVER mix English and Spanish in one message
+- ALWAYS confirm what you just logged in plain natural language
+- After logging a full week, say the total hours and OT (if any)`;
+
+// ═══════════════════════════════════════════════
+//  SET JOB ACTION
+// ═══════════════════════════════════════════════
+function execSetJob(cmd){
+  if(cmd.company!==undefined){ job.company=cmd.company; document.getElementById('fi-company').value=cmd.company; }
+  if(cmd.site!==undefined)   { job.site=cmd.site;       document.getElementById('fi-job').value=cmd.site; }
+  if(cmd.foreman!==undefined){ job.foreman=cmd.foreman; document.getElementById('fi-foreman').value=cmd.foreman; }
+  if(cmd.weekend!==undefined){ job.weekend=cmd.weekend; document.getElementById('fi-weekend').value=cmd.weekend; }
+  persist();
+}
+
+// ═══════════════════════════════════════════════
+//  CALL API
+// ═══════════════════════════════════════════════
+async function callAI(userText){
+  if(!apiKey){
+    const nokey = lang==='es'
+      ? 'Por favor ingresa tu Anthropic API key arriba para activarme. Solo necesitas hacerlo una vez, se guarda automáticamente en este dispositivo.'
+      : 'Please enter your Anthropic API key at the top to activate me. You only need to do it once — it saves automatically on this device.';
+    msg('ai', nokey); speak(nokey);
+    // Scroll to and highlight the API key input so user sees it
+    const apiIn = document.getElementById('api-in');
+    apiIn.scrollIntoView({behavior:'smooth', block:'center'});
+    apiIn.style.borderColor='#f59e0b';
+    apiIn.focus();
+    setTimeout(()=>{ apiIn.style.borderColor=''; }, 3000);
+    return;
+  }
+
+  // Inject full current state as context
+  const jobCtx = `Company: ${job.company||'(not set)'}, Site: ${job.site||'(not set)'}, Foreman: ${job.foreman||'(not set)'}, Week ending: ${job.weekend||'(not set)'}`;
+  const wCtx = workers.length
+    ? workers.map(w=>{
+        const c=calcWorker(w);
+        const jobLines = (w.jobs||[]).map((j,ji)=>{
+          const days = DAYS.map(d=>`${DS[d]}:${j.hours?.[d]||0}`).join(' ');
+          return `  Job${ji+1}${j.name?' ('+j.name+')':''}: ${days}`;
+        }).join('\n');
+        return `${w.name} (${w.role||'?'}) | Total:${c.totalHrs}h REG:${c.totalReg}h OT:${c.totalOT}h\n${jobLines}`;
+      }).join('\n')
+    : '(none yet)';
+  const ctx = `\n\n[CURRENT TIMESHEET STATE]\nJob info: ${jobCtx}\nWorkers:\n${wCtx}`;
+
+  history.push({role:'user', content: userText + ctx});
+  const msgs = history.slice(-16);
+
+  showTyping();
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key': apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+        'content-type':'application/json'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1024,
+        system: SYS_PROMPT,
+        messages: msgs
+      })
+    });
+    hideTyping();
+
+    if(!res.ok){
+      const e=await res.json().catch(()=>({}));
+      msg('ai',`Error ${res.status}: ${e.error?.message||res.statusText}`);
+      history.pop(); return;
+    }
+
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||'';
+    history.push({role:'assistant', content:reply});
+
+    // Extract JSON blocks
+    const blocks=[...reply.matchAll(/```json\s*([\s\S]*?)```/gi)];
+    let display=reply.replace(/```json[\s\S]*?```/gi,'').trim();
+    if(!display) display=reply;
+
+    msg('ai', display);
+    speak(display);
+    blocks.forEach(b=>{ try{ execCmd(JSON.parse(b[1].trim())); }catch(e){} });
+
+  }catch(e){
+    hideTyping();
+    msg('ai',`Network error: ${e.message}`);
+    history.pop();
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  EXECUTE COMMAND FROM AI
+// ═══════════════════════════════════════════════
+function execCmd(cmd){
+  const {action}=cmd;
+  if(action==='set_job'){
+    execSetJob(cmd); return;
+  }
+  if(action==='add_worker'){
+    if(addWorker(cmd.name,cmd.role||'',cmd.rate||''))
+      sysmsg(`✓ Added: ${cmd.name}`);
+  }
+  else if(action==='set_hours'){
+    const i=findW(cmd.worker||'');
+    if(i<0){ sysmsg(`⚠ Worker not found: ${cmd.worker}`); return; }
+    const d=(cmd.day||'').toLowerCase();
+    if(!DAYS.includes(d)){ sysmsg(`⚠ Unknown day: ${cmd.day}`); return; }
+    // find job by name, or use index, or default to first job
+    let ji=0;
+    if(cmd.job){ const jn=cmd.job.toLowerCase(); ji=workers[i].jobs.findIndex(j=>j.name.toLowerCase()===jn); if(ji<0){ji=0;} }
+    setH(i,ji,d,cmd.hours);
+    const c=calcWorker(workers[i]);
+    sysmsg(`✓ ${workers[i].name} — ${DS[d]}: ${cmd.hours}h | Week total: ${n2(c.totalHrs)}h (${n2(c.totalOT)}h OT)`);
+  }
+  else if(action==='set_week'){
+    const i=findW(cmd.worker||'');
+    if(i<0){ sysmsg(`⚠ Worker not found: ${cmd.worker}`); return; }
+    let ji=0;
+    if(cmd.job){ const jn=cmd.job.toLowerCase(); ji=workers[i].jobs.findIndex(j=>j.name.toLowerCase()===jn); if(ji<0){ji=0;} }
+    if(cmd.hours&&typeof cmd.hours==='object'){
+      Object.entries(cmd.hours).forEach(([d,h])=>{ if(DAYS.includes(d)) setH(i,ji,d,h); });
+      const c=calcWorker(workers[i]);
+      sysmsg(`✓ ${workers[i].name} — Week set | ${n2(c.totalHrs)}h total, ${n2(c.totalReg)}h REG, ${n2(c.totalOT)}h OT`);
+    }
+  }
+  else if(action==='update_worker'){
+    const i=findW(cmd.worker||'');
+    if(i<0){ sysmsg(`⚠ Not found: ${cmd.worker}`); return; }
+    if(cmd.new_name) workers[i].name=cmd.new_name;
+    if(cmd.role!==undefined) workers[i].role=cmd.role;
+    if(cmd.rate!==undefined) workers[i].rate=cmd.rate;
+    persist(); render();
+    sysmsg(`✓ Updated: ${workers[i].name}`);
+  }
+  else if(action==='remove_worker'){
+    const i=findW(cmd.worker||'');
+    if(i<0){ sysmsg(`⚠ Not found: ${cmd.worker}`); return; }
+    const name=workers[i].name;
+    delWorker(i);
+    sysmsg(`✓ Removed: ${name}`);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SEND MESSAGE
+// ═══════════════════════════════════════════════
+async function send(){
+  const inp=document.getElementById('chat-in');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value=''; inp.style.height='38px';
+  msg('user',text);
+  await callAI(text);
+}
+document.getElementById('btn-send').onclick=send;
+document.getElementById('chat-in').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); }
+});
+document.getElementById('chat-in').addEventListener('input',function(){
+  this.style.height='38px';
+  this.style.height=Math.min(this.scrollHeight,110)+'px';
+});
+
+// ═══════════════════════════════════════════════
+//  VOICE
+// ═══════════════════════════════════════════════
+let recog=null, hearing=false;
+(function initVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById('btn-mic');
+  if(!SR){ btn.style.opacity='.35'; btn.title='Voice not supported'; return; }
+  recog=new SR();
+  recog.continuous=false; recog.interimResults=false;
+  recog.lang=lang==='es'?'es-MX':'en-US';
+  recog.onresult=e=>{
+    document.getElementById('chat-in').value=e.results[0][0].transcript;
+    stopVoice(); send();
+  };
+  recog.onerror=e=>{
+    stopVoice();
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      const m=lang==='es'
+        ?'El micrófono no está disponible en este dispositivo. El modo de voz requiere conexión segura (HTTPS). Escribe tu mensaje en su lugar.'
+        :'Microphone not available on this device. Voice requires a secure connection (HTTPS). Please type your message instead.';
+      alert(m);
+    }
+  };
+  recog.onend=()=>stopVoice();
+})();
+function startVoice(){
+  if(!recog) return;
+  hearing=true;
+  recog.lang=lang==='es'?'es-MX':'en-US';
+  document.getElementById('btn-mic').classList.add('on');
+  document.getElementById('btn-mic').textContent='⏹';
+  document.getElementById('voice-hint').textContent='🔴 listening...';
+  try{ recog.start(); }catch(e){ stopVoice(); }
+}
+function stopVoice(){
+  hearing=false;
+  document.getElementById('btn-mic').classList.remove('on');
+  document.getElementById('btn-mic').textContent='🎤';
+  document.getElementById('voice-hint').textContent='🎤 tap mic or type';
+  try{ recog?.stop(); }catch(e){}
+}
+document.getElementById('btn-mic').onclick=()=>hearing?stopVoice():startVoice();
+
+// ═══════════════════════════════════════════════
+//  WEEK ENDING DEFAULT
+// ═══════════════════════════════════════════════
+function defaultWeekEnd(){
+  if(job.weekend) return;
+  const now=new Date();
+  const day=now.getDay(); // 0=Sun
+  const toWed=day<=3 ? 3-day : 10-day; // days until next Wed
+  const wed=new Date(now); wed.setDate(now.getDate()+toWed);
+  const iso=wed.toISOString().slice(0,10);
+  document.getElementById('fi-weekend').value=iso;
+  job.weekend=iso; persist();
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+hydrate();
+restoreJob();
+defaultWeekEnd();
+render();
+setLang(lang);
+updateDataLists();
+
+// Quick action buttons above input
+function addQuickBtns(){
+  const row = document.getElementById('chat-bottom');
+  const btns = document.createElement('div');
+  btns.id='quick-btns';
+  btns.style.cssText='display:flex;gap:5px;flex-wrap:wrap;padding:0 0 4px 0';
+  const actions = [
+    {label:'▶ Start timesheet', en:'I want to fill out a new timesheet, guide me step by step.', es:'Quiero llenar un nuevo timesheet, guíame paso a paso.'},
+    {label:'➕ Add worker',      en:'Add a new worker.',                                           es:'Agregar un nuevo trabajador.'},
+    {label:'📋 Summary',        en:'Give me a summary of all workers and their hours.',            es:'Dame un resumen de todos los trabajadores y sus horas.'},
+  ];
+  actions.forEach(a=>{
+    const b=document.createElement('button');
+    b.textContent=a.label;
+    b.style.cssText='padding:4px 10px;background:#1e2235;border:1px solid #3d4166;border-radius:6px;color:#a5b4fc;font-size:.68rem;cursor:pointer';
+    b.onmouseenter=()=>b.style.background='#252840';
+    b.onmouseleave=()=>b.style.background='#1e2235';
+    b.onclick=()=>{ const t=lang==='es'?a.es:a.en; msg('user',t); callAI(t); };
+    btns.appendChild(b);
+  });
+  row.insertBefore(btns, row.firstChild);
+}
+addQuickBtns();
+
+// Welcome message
+setTimeout(()=>{
+  const welcome = lang==='es'
+    ? '¡Hola! Soy Becky. Habla o escribe para llenar el timesheet.'
+    : "Hey, I'm Becky. Talk or type to fill out the timesheet.";
+  msg('ai', welcome);
+},400);
+</script>
+</body>
+</html>
